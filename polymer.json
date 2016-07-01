@@ -1,0 +1,9 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/app.html",
+  "fragments": [
+    "src/build-status.html",
+    "src/feature-queue.html",
+    "src/rc-status.html"
+  ]
+}

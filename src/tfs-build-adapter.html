@@ -1,0 +1,120 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+
+<dom-module id="tfs-build-adapter">
+	<template>
+
+    <paper-input value="{{name}}"></paper-input>
+
+    <iron-ajax
+        auto
+        url="{{buildDefinitionUrl}}"
+        handle-as="json"
+        params="{{buildDefinitionOptions}}"
+        headers='{{authorizationHeader}}'
+        last-response="{{buildDefinitionResponse}}"
+        debounceDuration="500">
+    </iron-ajax>
+
+    <template is="dom-repeat" items="[[buildDefinitionResponse.value]]">
+        <span>{{item.name}}</span>
+    </template>
+
+    <iron-ajax
+        auto
+        url="{{buildUrl}}"
+        handle-as="json"
+        params='{{buildOptions}}'
+        headers='{{authorizationHeader}}'
+        last-response="{{buildResponse}}"
+        debounceDuration="500">
+    </iron-ajax>
+
+    <div>
+      <template is="dom-repeat" items="[[buildResponse.value]]">
+          <span>{{item.result}}</span>
+      </template>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'tfs-build-adapter',
+
+      properties: {
+        
+        username: {
+          value: '',
+          notify: true
+        },
+
+        password: {
+          value: '',
+          notify: true
+        },
+
+        collection: {
+          value: 'defaultcollection',
+          notify: true
+        },
+
+        project: {
+          value: '',
+          notify: true
+        },
+
+        name: {
+          value: '',
+          notify: true
+        },
+
+        buildDefinitionId: {
+          value: '',
+          notify: true
+        },
+
+        buildDefinitionOptions: {
+          computed: 'computeBuildDefinitionOptions(name)'
+        },
+
+        buildDefinitionUrl: {
+          computed: 'computeBuildDefinitionUrl(instance, collection, project)'
+        },
+
+        authorizationHeader: {
+          computed: 'computeAuthorizationHeader(username, password)'
+        },
+
+        buildUrl: {
+          computed: 'computeBuildUrl(instance, collection, project)'
+        },
+
+        buildOptions: {
+          computed: 'computeBuildOptions(buildDefinitionId)'
+        }
+    },
+
+    computeBuildDefinitionUrl: function(instance, collection, project) {
+        return ['https://', instance, collection, project, '_apis/build/definitions'].join('/');
+    },
+    
+    computeBuildDefinitionOptions: function (name) {
+      return { 'name': name };
+    },
+
+    computeAuthorizationHeader: function(username, password) {
+      return { "Authorization": "Basic " + btoa(username + ":" + password) };
+    },
+
+    computeBuildUrl: function(instance, collection, project) {
+      return ['https://', instance, collection, project, '_apis/build/builds'].join('/');
+    },
+
+    computeBuildOptions: function(buildDefinitionId) {
+      return { "Filter":"completed", "top":"1", "definitions": buildDefinitionId }
+    }
+  });
+  </script>
+</dom-module>
