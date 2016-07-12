@@ -17,7 +17,8 @@
     "paper-icon-button": "PolymerElements/paper-icon-button#~1.1.1",
     "polymer": "polymer/polymer#^1.4.0",
     "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
-    "paper-input": "PolymerElements/paper-input#^1.1.13"
+    "paper-input": "PolymerElements/paper-input#^1.1.13",
+    "paper-card": "PolymerElements/paper-card#^1.1.1"
   },
   "devDependencies": {
     "web-component-tester": "^4.0.0"

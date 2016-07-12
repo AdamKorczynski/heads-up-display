@@ -1,11 +1,26 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
 
 <dom-module id="tfs-build-adapter">
 	<template>
+    <style is="custom-style">
+      paper-card.failed {
+        --paper-card-background-color: #ff0000;
+        --paper-card-header-color: #fff;
+      }
 
-    <paper-input value="{{name}}"></paper-input>
+      paper-card.succeeded {
+        --paper-card-background-color: #8E89FF;
+        --paper-card-header-color: #fff;
+      }
+
+      paper-card.cancelled {
+        --paper-card-background-color: #FFFCE7;
+        --paper-card-header-color: #fff;
+      }
+    </style>
 
     <iron-ajax
         auto
@@ -17,10 +32,6 @@
         debounceDuration="500">
     </iron-ajax>
 
-    <template is="dom-repeat" items="[[buildDefinitionResponse.value]]">
-        <span>{{item.name}}</span>
-    </template>
-
     <iron-ajax
         auto
         url="{{buildUrl}}"
@@ -28,17 +39,29 @@
         params='{{buildOptions}}'
         headers='{{authorizationHeader}}'
         last-response="{{buildResponse}}"
+        on-response="onBuildResponse"
         debounceDuration="500">
     </iron-ajax>
 
-    <div>
-      <template is="dom-repeat" items="[[buildResponse.value]]">
-          <span>{{item.result}}</span>
-      </template>
-    </div>
+    <template is="dom-if" if="{{_showList}}">
+      <paper-dropdown-menu label="Build definitions" selected="{{buildDefinitionName}}">
+        <paper-listbox>
+          <template is="dom-repeat" items="[[buildDefinitionResponse.value]]" >
+              <paper-item>[[item.name]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+    </template>
+
+    <template is="dom-if" if="{{!_showList}}" >
+      <paper-input label="Build Definition" value="{{buildDefinitionName}}"></paper-input>
+    </template>
+
+    <template is="dom-repeat" items="[[builds]]">
+      <paper-card heading="[[item.status]]" class="[[item.status]]"></paper-card>
+    </template>
 
   </template>
-
   <script>
     Polymer({
       is: 'tfs-build-adapter',
@@ -65,7 +88,8 @@
           notify: true
         },
 
-        name: {
+        buildDefinitionName: {
+          type: String,
           value: '',
           notify: true
         },
@@ -75,8 +99,21 @@
           notify: true
         },
 
+        builds: {
+          type: Array,
+          notify: true
+        },
+
+        maxBuilds: {
+          value: 20,
+          notify: true
+        },
+
+        _showList: {
+          computed: 'computeShowList(buildDefinitionResponse)'
+        },
         buildDefinitionOptions: {
-          computed: 'computeBuildDefinitionOptions(name)'
+          computed: 'computeBuildDefinitionOptions(buildDefinitionName)'
         },
 
         buildDefinitionUrl: {
@@ -92,28 +129,56 @@
         },
 
         buildOptions: {
-          computed: 'computeBuildOptions(buildDefinitionId)'
+          computed: 'computeBuildOptions(buildDefinitionId, maxBuilds)'
         }
+    },
+
+    onBuildResponse: function (data) {
+        var builds = data.detail.response.value;
+        
+        var selectedBuildDefinition = this.buildDefinitionName;
+
+        this.builds = builds
+          .map(function(build){
+            return { 
+              name: build.definition.name,
+              url: build.url,
+              id: build.Id,
+              definitionId: build.definition.Id,
+              status: build.result
+            }; 
+          })
+          .filter(function (newBuild) {
+            return newBuild.name === selectedBuildDefinition;
+          });
+    },
+
+    computeShowList: function(buildDefinitionResponse) {
+      if(buildDefinitionResponse.value.length === 1) {
+        this.buildDefinitionName = buildDefinitionResponse.value[0].name;
+      }
+
+      return buildDefinitionResponse.value.length > 1;
     },
 
     computeBuildDefinitionUrl: function(instance, collection, project) {
         return ['https://', instance, collection, project, '_apis/build/definitions'].join('/');
     },
     
-    computeBuildDefinitionOptions: function (name) {
-      return { 'name': name };
-    },
-
-    computeAuthorizationHeader: function(username, password) {
-      return { "Authorization": "Basic " + btoa(username + ":" + password) };
+    computeBuildDefinitionOptions: function (buildDefinitionName) {
+      return { 'name': buildDefinitionName };
     },
 
     computeBuildUrl: function(instance, collection, project) {
       return ['https://', instance, collection, project, '_apis/build/builds'].join('/');
     },
 
-    computeBuildOptions: function(buildDefinitionId) {
-      return { "Filter":"completed", "top":"1", "definitions": buildDefinitionId }
+    computeBuildOptions: function(buildDefinitionId, maxBuilds) {
+      return { "Filter":"completed", "definitions": buildDefinitionId, "top": maxBuilds }
+    },
+
+    computeAuthorizationHeader: function(username, password) {
+      return { "Authorization": "Basic " + btoa(username + ":" + password) };
     }
   });
   </script>

@@ -47,24 +47,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </style>
 
     <div class="card">
-      <div class="circle">1</div>
       <h1>Build Status</h1>
-      
+
       <tfs-build-adapter
         username="vsts-test-user@outlook.com"
         password="3n5yn2ywqt7ulqslotqlrr5cp35ibyfew3pmj7eu6k2zq2njpc6q"
         instance="adamkorczynski.visualstudio.com"
         project="The%20Steak%20Dinner%20Project"
-        buildDefinition="LeadManagementAPI"
+        build-definition-name="LeadManagementAPI"
         reponse="{{buildInfo}}">
       </tfs-build-adapter>
-
     </div>
 
   </template>
   <script>
     Polymer({
-      is: 'build-status'
+      is: 'build-status',
+      properties: {
+        buildInfo: {
+          type: Object,
+          notify: true
+        }
+      }
     });
   </script>
 </dom-module>

@@ -20,6 +20,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="icons.html">
+<link rel="import" href="../src/leap/leap-controller.html">
 
 <dom-module id="hud-app">
 
@@ -89,7 +90,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <div title>Heads Up Display</div>
           </app-toolbar>
         </app-header>
-
+        
         <iron-pages role="main" selected="[[page]]" attr-for-selected="name">
           <build-status name="build-status"></build-status>
           <feature-queue name="feature-queue"></feature-queue>
