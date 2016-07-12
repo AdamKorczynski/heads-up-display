@@ -1,0 +1,48 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="leap-controller">
+	<template>
+        <p>Normalized Position: <span>{{normPosition}}</span></p>
+        <p>Tip Position: <span>{{tipPosition}}</span></p>
+	</template>
+    <script>
+        Polymer({
+            is: 'leap-controller',
+            
+            properties: { 
+                normPosition: {
+                    value: '...',
+                    notify: true
+                },
+                tipPosition: {
+                    value: '...',
+                    notify: true
+                }
+            },
+
+            ready: function() {
+
+                var that = this;
+                
+                var controller = new Leap.Controller();
+                controller.on('frame', function(frame){
+                    if(frame.pointables.length > 0)
+                    {
+                        var pointable = frame.pointables[0];
+                        
+                        var interactionBox = frame.interactionBox;
+                        var normalizedPosition = interactionBox.normalizePoint(pointable.tipPosition, true);
+                        that.normPosition = "(" + normalizedPosition[0] + ", " 
+                                                        + normalizedPosition[1] + ", " 
+                                                        + normalizedPosition[2] + ")";
+                        that.tipPosition = "(" + pointable.tipPosition[0] + ", "
+                                                + pointable.tipPosition[1] + ", "
+                                                + pointable.tipPosition[2] + ")";
+                    }
+                });
+                controller.connect();
+            }
+        });
+    </script>
+</dom-module>
+
